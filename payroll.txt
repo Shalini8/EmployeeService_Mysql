@@ -1,0 +1,168 @@
+#UC1 create a payroll service database.
+mysql> create database payrollservice;
+mysql> show databases;
++--------------------+
+| Database           |
++--------------------+
+| addressbook        |
+| addressbookservice |
+| information_schema |
+| mysql              |
+| payrollservice     |
+| performance_schema |
+| sys                |
++--------------------+
+
+#UC2 : create employeepayroll Table to manage employee payrolls.
+CREATE TABLE employeepayroll
+(
+  id              INT  NOT NULL  AUTO_INCREMENT, # Unique ID for the record
+  name            VARCHAR(150) NOT NULL,                
+  salary           INT NOT NULL,               
+  start          DATE NOT NULL,                       
+  PRIMARY KEY     (id)                                 
+);
+
+#UC3: Insert values in employeepayroll TABLE.
+INSERT INTO employeepayroll ( name, salary, start) VALUES
+  ( "Shalini",800000 , '2020-03-04' ),
+  ( "Ragini", 8000, '2020-08-06' ),
+  ( "Aman", 60000, '2020-03-12' );
+
+#UC4: retrieve the data of employeepayroll.
+ SELECT * FROM employeepayroll;
+r
+#UC5: retrieve the salary of  particular employee who have joinednin a particular data range 
+	from the employeepayroll.
+SELECT salary FROM employeepayroll WHERE name = 'Shalini' ; // show shalini salary
++--------+
+| salary |
++--------+
+| 800000 |
++--------+
+mysql> SELECT salary FROM employeepayroll WHERE start BETWEEN CAST('2018-01-01' AS DATE) AND DATE(NOW());
++--------+
+| salary |
++--------+
+| 800000 |
+|   8000 |
+|  60000 |
++--------+
+
+# UC6 : ADD gender
+ALTER TABLE employeepayroll  ADD gender CHAR(1) AFTER name;
+UPDATE employeepayroll set gender = 'F' where name ='Shalini' or name ='Ragini';
+
+#UC7: Find sum, Avg, min, max, and no of male and female::
+mysql> SELECT SUM(salary) FROM employeepayroll where gender = 'F' GROUP BY GENDER;
++-------------+
+| SUM(salary) |
++-------------+
+|      808000 |
++-------------+
+1 row in set (0.05 sec)
+
+mysql> SELECT AVG(salary) FROM employeepayroll where gender = 'F' GROUP BY GENDER;
++-------------+
+| AVG(salary) |
++-------------+
+|      404000 |
++-------------+
+1 row in set (0.00 sec)
+
+mysql> SELECT MIN(salary) FROM employeepayroll where gender = 'F' GROUP BY GENDER;
++-------------+
+| MIN(salary) |
++-------------+
+|        8000 |
++-------------+
+1 row in set (0.05 sec)
+
+mysql> SELECT MAX(salary) FROM employeepayroll where gender = 'F' GROUP BY GENDER;
++-------------+
+| MAX(salary) |
++-------------+
+|      800000 |
++-------------+
+1 row in set (0.00 sec)
+
+mysql> SELECT COUNT(gender) FROM employeepayroll where gender = 'F' GROUP BY GENDER;
++---------------+
+| COUNT(gender) |
++---------------+
+|             2 |
++---------------+
+
+#UC8: Store information like employee phone, address, and department.
+ALTER TABLE employeepayroll ADD phone_number VARCHAR(200) AFTER name;
+ ALTER TABLE employeepayroll ADD address VARCHAR(200) AFTER phone_number;
+ ALTER TABLE employeepayroll ADD department VARCHAR(200) NOT NULL AFTER address;
+ALTER TABLE employeepayroll ALTER address SET default 'TBD';
+mysql> describe employeepayroll;
++--------------+--------------+------+-----+---------+----------------+
+| Field        | Type         | Null | Key | Default | Extra          |
++--------------+--------------+------+-----+---------+----------------+
+| id           | int          | NO   | PRI | NULL    | auto_increment |
+| name         | varchar(150) | NO   |     | NULL    |                |
+| phone_number | varchar(200) | YES  |     | NULL    |                |
+| address      | varchar(200) | YES  |     | TBD     |                |
+| department   | varchar(200) | NO   |     | NULL    |                |
+| gender       | char(1)      | YES  |     | NULL    |                |
+| salary       | double       | NO   |     | NULL    |                |
+| start        | date         | NO   |     | NULL    |                |
++--------------+--------------+------+-----+---------+----------------+
+
+#UC9: Ability to extend employeepayroll  to have basic pay , deductions, taxable pay Income tax, NetPay
+
+mysql> ALTER TABLE employeepayroll RENAME COLUMN salary TO basic_pay;
+
+mysql> ALTER TABLE employeepayroll ADD deductions DOUBLE NOT NULL AFTER bas
+
+mysql> ALTER TABLE employeepayroll ADD taxable_pay DOUBLE NOT NULL AFTER de
+
+mysql> ALTER TABLE employeepayroll ADD tax DOUBLE NOT NULL AFTER taxable_pa
+
+mysql> ALTER TABLE employeepayroll ADD net_pay DOUBLE NOT NULL AFTER tax;
+
+mysql> describe employeepayroll;
++--------------+--------------+------+-----+---------+----------------+
+| Field        | Type         | Null | Key | Default | Extra          |
++--------------+--------------+------+-----+---------+----------------+
+| id           | int          | NO   | PRI | NULL    | auto_increment |
+| name         | varchar(150) | NO   |     | NULL    |                |
+| phone_number | varchar(200) | YES  |     | NULL    |                |
+| address      | varchar(200) | YES  |     | TBD     |                |
+| department   | varchar(200) | NO   |     | NULL    |                |
+| gender       | char(1)      | YES  |     | NULL    |                |
+| basic_pay    | double       | NO   |     | NULL    |                |
+| deductions   | double       | NO   |     | NULL    |                |
+| taxable_pay  | double       | NO   |     | NULL    |                |
+| tax          | double       | NO   |     | NULL    |                |
+| net_pay      | double       | NO   |     | NULL    |                |
+| start        | date         | NO   |     | NULL    |                |
++--------------+--------------+------+-----+---------+----------------+
+12 rows in set (0.03 sec) 
+
+#UC10: make Shalini part of Sales and Marketing department.
+	ER Diagram.
+
+mysql> update employeepayroll set department = 'Sales' where name = 'Shalini';
+Query OK, 1 row affected (0.11 sec)
+Rows matched: 1  Changed: 1  Warnings: 0
+
+mysql> INSERT INTO  employeepayroll(name, department, gender, basic_pay, deductions, taxable_pay, tax, net_pay, start) VALUES
+    -> ('Shalini', 'Marketing', 'F', 300000.00, 100000.00, 200000.00, 500000.00, 1500000.00, '2020-01-01');
+Query OK, 1 row affected (0.22 sec)
+
+mysql> select * from employeepayroll;
++----+---------+--------------+---------+------------+--------+-----------+------------+-------------+--------+---------+------------+
+| id | name    | phone_number | address | department | gender | basic_pay | deductions | taxable_pay | tax    | net_pay | start      |
++----+---------+--------------+---------+------------+--------+-----------+------------+-------------+--------+---------+------------+
+|  1 | Shalini | NULL         | NULL    | Sales      | F      |    800000 |          0 |           0 |      0 |       0 | 2020-03-04 |
+|  2 | Ragini  | NULL         | NULL    |            | F      |      8000 |          0 |           0 |      0 |       0 | 2020-08-06 |
+|  3 | Aman    | NULL         | NULL    |            | M      |     60000 |          0 |           0 |      0 |       0 | 2020-03-12 |
+|  4 | Terisa  | NULL         | TBD     | Marketing  | F      |    300000 |     100000 |      200000 | 500000 | 1500000 | 2020-01-01 |
+|  5 | Shalini | NULL         | TBD     | Marketing  | F      |    300000 |     100000 |      200000 | 500000 | 1500000 | 2020-01-01 |
++----+---------+--------------+---------+------------+--------+-----------+------------+-------------+--------+---------+------------+
+5 rows in set (0.00 sec)
+
